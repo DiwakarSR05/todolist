@@ -15,5 +15,5 @@ A feature-rich todo list application built with Django.
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/your-repository-name.git
-cd your-repository-name
+git clone https://github.com/DiwakarSR05/todolist.git
+cd todolist
