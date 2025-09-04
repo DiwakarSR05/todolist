@@ -1,0 +1,224 @@
+{% extends 'todo_app/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-primary text-white text-center py-4">
+                <h3><i class="bi bi-person-circle me-2"></i>Edit Profile</h3>
+                <p class="mb-0">Update your personal information</p>
+            </div>
+            <div class="card-body p-5">
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="text-center mb-4">
+                        {% if request.user.userprofile.profile_picture %}
+                            <img src="{{ request.user.userprofile.profile_picture.url }}" 
+                                 class="rounded-circle mb-3" 
+                                 width="150" 
+                                 height="150" 
+                                 alt="Profile Picture"
+                                 style="object-fit: cover;"
+                                 id="profile-preview">
+                            <div class="mt-2">
+                                <label for="id_profile_picture" class="btn btn-sm btn-outline-primary me-2">
+                                    <i class="bi bi-upload me-1"></i>Change Picture
+                                </label>
+                                <button type="button" class="btn btn-sm btn-outline-danger" id="remove-picture-btn">
+                                    <i class="bi bi-trash me-1"></i>Remove
+                                </button>
+                                <input type="hidden" name="remove_picture" id="remove_picture" value="false">
+                            </div>
+                        {% else %}
+                            <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center mb-3" 
+                                 style="width: 150px; height: 150px;"
+                                 id="profile-preview">
+                                <i class="bi bi-person-fill text-white" style="font-size: 4rem;"></i>
+                            </div>
+                            <div class="mt-2">
+                                <label for="id_profile_picture" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-upload me-1"></i>Upload Picture
+                                </label>
+                            </div>
+                        {% endif %}
+                        {{ profile_form.profile_picture }}
+                    </div>
+                    
+                    <h5 class="mb-3">Personal Information</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Username</label>
+                            {{ user_form.username }}
+                            {% if user_form.username.errors %}
+                                <div class="text-danger small">{{ user_form.username.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            {{ user_form.email }}
+                            {% if user_form.email.errors %}
+                                <div class="text-danger small">{{ user_form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name</label>
+                            {{ user_form.first_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name</label>
+                            {{ user_form.last_name }}
+                        </div>
+                    </div>
+                    
+                    <h5 class="mb-3 mt-4">Additional Information</h5>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Bio</label>
+                        {{ profile_form.bio }}
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Phone Number</label>
+                            {{ profile_form.phone_number }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Location</label>
+                            {{ profile_form.location }}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle me-2"></i>Update Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 1rem;
+    }
+    
+    .form-control:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+    }
+    
+    input[type="file"] {
+        opacity: 0;
+        position: absolute;
+        z-index: -1;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Bootstrap classes to form fields
+        const inputs = document.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            if (!input.classList.contains('btn') && input.type !== 'hidden') {
+                input.classList.add('form-control');
+            }
+        });
+    
+        const profileInput = document.getElementById('id_profile_picture');
+        const removePictureBtn = document.getElementById('remove-picture-btn');
+        const removePictureInput = document.getElementById('remove_picture');
+        let profilePreview = document.getElementById('profile-preview');
+    
+        // Handle file selection with ObjectURL
+        if (profileInput) {
+            profileInput.style.display = 'none';
+    
+            profileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    const objectURL = URL.createObjectURL(file);
+    
+                    // If preview is already an IMG, just update src
+                    if (profilePreview.tagName === 'IMG') {
+                        profilePreview.src = objectURL;
+                    } else {
+                        // Replace placeholder with IMG only once
+                        const newImg = document.createElement('img');
+                        newImg.src = objectURL;
+                        newImg.className = 'rounded-circle mb-3';
+                        newImg.width = 150;
+                        newImg.height = 150;
+                        newImg.style.objectFit = 'cover';
+                        newImg.id = 'profile-preview';
+                        profilePreview.parentNode.replaceChild(newImg, profilePreview);
+                        profilePreview = newImg;
+                    }
+    
+                    // Revoke object URL after image loads
+                    profilePreview.onload = () => URL.revokeObjectURL(objectURL);
+    
+                    // Ensure remove button is visible
+                    if (removePictureBtn) {
+                        removePictureBtn.style.display = 'inline-block';
+                    }
+                }
+            });
+        }
+    
+        // Handle picture removal
+        if (removePictureBtn) {
+            removePictureBtn.addEventListener('click', function() {
+                // Create default avatar
+                const defaultAvatar = document.createElement('div');
+                defaultAvatar.className = 'rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center mb-3';
+                defaultAvatar.style.width = '150px';
+                defaultAvatar.style.height = '150px';
+                defaultAvatar.innerHTML = '<i class="bi bi-person-fill text-white" style="font-size: 4rem;"></i>';
+                defaultAvatar.id = 'profile-preview';
+    
+                // Replace current preview with avatar
+                profilePreview.parentNode.replaceChild(defaultAvatar, profilePreview);
+                profilePreview = defaultAvatar;
+    
+                // Hide remove button
+                this.style.display = 'none';
+    
+                // Update upload button text
+                const changeBtn = document.querySelector('label[for="id_profile_picture"]');
+                if (changeBtn) {
+                    changeBtn.innerHTML = '<i class="bi bi-upload me-1"></i>Upload Picture';
+                    changeBtn.classList.remove('me-2');
+                }
+    
+                // Set remove flag
+                removePictureInput.value = 'true';
+    
+                // Clear file input
+                if (profileInput) {
+                    profileInput.value = '';
+                }
+            });
+        }
+    });
+    </script>
+    
+{% endblock %}

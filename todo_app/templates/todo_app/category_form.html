@@ -1,0 +1,126 @@
+{% extends 'todo_app/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-info text-white text-center py-4">
+                <h3><i class="bi bi-tag me-2"></i>{% if object %}Edit{% else %}Create{% endif %} Category</h3>
+                <p class="mb-0">Organize your tasks with categories</p>
+            </div>
+            <div class="card-body p-5">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">Category Name</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.color.id_for_label }}" class="form-label fw-bold">Color</label>
+                        <div class="d-flex align-items-center">
+                            {{ form.color }}
+                            <div id="colorPreview" class="ms-3 rounded-circle" style="width: 30px; height: 30px; background-color: {{ form.color.value|default:'#6c757d' }}"></div>
+                        </div>
+                        {% if form.color.errors %}
+                        <div class="text-danger small mt-1">{{ form.color.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button type="submit" class="btn btn-primary btn-lg flex-fill">
+                            <i class="bi bi-check-circle me-2"></i>Save Category
+                        </button>
+                        <a href="{% url 'task_list' %}" class="btn btn-outline-secondary btn-lg flex-fill">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if categories %}
+        <div class="card shadow-lg border-0 mt-4">
+            <div class="card-header bg-light text-center py-3">
+                <h5 class="mb-0">Your Categories</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for category in categories %}
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center p-3 rounded" style="background-color: {{ category.color }}20; border-left: 4px solid {{ category.color }};">
+                            <i class="bi bi-tag-fill me-3" style="color: {{ category.color }}; font-size: 1.5rem;"></i>
+                            <div>
+                                <h6 class="mb-0">{{ category.name }}</h6>
+                                <small class="text-muted">{{ category.task_set.count }} tasks</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 1rem;
+    }
+    
+    .form-control:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+    }
+    
+    input[type="color"] {
+        width: 60px;
+        height: 60px;
+        border: none;
+        border-radius: 50%;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    
+    input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
+    
+    input[type="color"]::-webkit-color-swatch {
+        border: none;
+        border-radius: 50%;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Bootstrap classes to form inputs
+        document.getElementById('id_name').className = 'form-control form-control-lg';
+        document.getElementById('id_color').className = 'form-control form-control-color';
+        
+        // Update color preview when color changes
+        const colorInput = document.getElementById('id_color');
+        const colorPreview = document.getElementById('colorPreview');
+        
+        colorInput.addEventListener('input', function() {
+            colorPreview.style.backgroundColor = this.value;
+        });
+    });
+</script>
+{% endblock %}

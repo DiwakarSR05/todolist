@@ -1,0 +1,123 @@
+{% extends 'todo_app/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <h2 class="mb-4">Dashboard</h2>
+        
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <h6>Total Tasks</h6>
+                    <h3>{{ total_tasks }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <h6>Completed</h6>
+                    <h3>{{ completed_tasks }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <h6>Overdue</h6>
+                    <h3>{{ overdue_tasks }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <h6>Completion Rate</h6>
+                    <h3>{{ completion_rate }}%</h3>
+                </div>
+            </div>
+        </div>
+        
+        {% if total_tasks > 0 %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Progress Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: {{ completion_rate }}%;" 
+                         aria-valuenow="{{ completion_rate }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        {{ completion_rate }}%
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <small class="text-muted">{{ completed_tasks }} completed</small>
+                    <small class="text-muted">{{ total_tasks|add:completed_tasks }} total</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Tasks</h5>
+                <a href="{% url 'task_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if tasks %}
+                    <div class="list-group">
+                        {% for task in tasks %}
+                            <div class="list-group-item priority-{{ task.priority }} mb-2 {% if task.completed %}completed{% endif %}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ task.title }}</strong>
+                                        {% if task.due_date %}
+                                            <br><small class="{% if task.is_overdue and not task.completed %}text-danger{% else %}text-muted{% endif %}">
+                                                Due: {{ task.due_date|date:"M d, Y H:i" }}
+                                                {% if task.is_overdue and not task.completed %}
+                                                    <span class="badge bg-danger ms-2">Overdue</span>
+                                                {% endif %}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        {% if task.category %}
+                                            <span class="badge category-badge" style="background-color: {{ task.category.color }}; color: white;">
+                                                {{ task.category.name }}
+                                            </span>
+                                        {% endif %}
+                                        <span class="badge bg-{% if task.priority == 'H' %}danger{% elif task.priority == 'M' %}warning{% else %}success{% endif %}">
+                                            {{ task.get_priority_display }}
+                                        </span>
+                                        {% if task.completed %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No tasks yet. <a href="{% url 'task_create' %}">Create your first task!</a></p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2 d-md-flex">
+                    <a href="{% url 'task_create' %}" class="btn btn-primary me-md-2">
+                        <i class="bi bi-plus-circle me-1"></i> Add Task
+                    </a>
+                    <a href="{% url 'category_create' %}" class="btn btn-outline-primary me-md-2">
+                        <i class="bi bi-tag me-1"></i> Add Category
+                    </a>
+                    <a href="{% url 'task_list' %}?filter=overdue" class="btn btn-outline-danger">
+                        <i class="bi bi-exclamation-triangle me-1"></i> View Overdue
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

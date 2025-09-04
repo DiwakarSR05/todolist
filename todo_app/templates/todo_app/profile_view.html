@@ -1,0 +1,78 @@
+{% extends 'todo_app/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-primary text-white text-center py-4">
+                <h3><i class="bi bi-person-circle me-2"></i>My Profile</h3>
+            </div>
+            <div class="card-body p-5 text-center">
+                <div class="mb-4">
+                    {% if request.user.userprofile.profile_picture %}
+                        <img src="{{ request.user.userprofile.profile_picture.url }}" 
+                             class="rounded-circle mb-3" 
+                             width="150" 
+                             height="150" 
+                             alt="Profile Picture"
+                             style="object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center mb-3" 
+                             style="width: 150px; height: 150px;">
+                            <i class="bi bi-person-fill text-white" style="font-size: 4rem;"></i>
+                        </div>
+                    {% endif %}
+                    <h4>{{ request.user.get_full_name|default:request.user.username }}</h4>
+                    <p class="text-muted">@{{ request.user.username }}</p>
+                </div>
+                
+                <div class="text-start">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <strong>Email:</strong>
+                        <span>{{ request.user.email|default:"Not provided" }}</span>
+                    </div>
+                    
+                    {% if request.user.userprofile.bio %}
+                    <div class="mb-3">
+                        <strong>Bio:</strong>
+                        <p class="text-muted">{{ request.user.userprofile.bio }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if request.user.userprofile.phone_number %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <strong>Phone:</strong>
+                        <span>{{ request.user.userprofile.phone_number }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if request.user.userprofile.location %}
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <strong>Location:</strong>
+                        <span>{{ request.user.userprofile.location }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <strong>Member since:</strong>
+                        <span>{{ request.user.date_joined|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+                
+                <div class="d-grid mt-4">
+                    <a href="{% url 'profile' %}" class="btn btn-primary">
+                        <i class="bi bi-pencil me-2"></i>Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 1rem;
+    }
+    
+</style>
+{% endblock %}

@@ -1,0 +1,253 @@
+{% extends 'todo_app/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="sidebar p-3 mb-4">
+            <h5>Filters</h5>
+            <div class="list-group">
+                <a href="?filter=all" class="list-group-item list-group-item-action {% if filter == 'all' %}active{% endif %}">
+                    <i class="bi bi-list-task me-2"></i> All Tasks
+                    <span class="badge bg-primary rounded-pill float-end">{{ total_tasks }}</span>
+                </a>
+                <a href="?filter=active" class="list-group-item list-group-item-action {% if filter == 'active' %}active{% endif %}">
+                    <i class="bi bi-circle me-2"></i> Active
+                    <span class="badge bg-warning rounded-pill float-end">{{ active_tasks }}</span>  <!-- Changed this line -->
+                </a>
+                <a href="?filter=completed" class="list-group-item list-group-item-action {% if filter == 'completed' %}active{% endif %}">
+                    <i class="bi bi-check-circle me-2"></i> Completed
+                    <span class="badge bg-success rounded-pill float-end">{{ completed_tasks }}</span>
+                </a>
+                <a href="?filter=overdue" class="list-group-item list-group-item-action {% if filter == 'overdue' %}active{% endif %}">
+                    <i class="bi bi-exclamation-circle me-2"></i> Overdue
+                    <span class="badge bg-danger rounded-pill float-end">{{ overdue_tasks }}</span>
+                </a>
+            </div>
+            
+            <h5 class="mt-4">Categories</h5>
+            <div class="list-group">
+                {% for category in categories %}
+                <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-tag-fill me-2" style="color: {{ category.color }}"></i> {{ category.name }}</span>
+                    <span class="badge bg-primary rounded-pill">{{ category.task_set.count }}</span>
+                </a>
+                {% empty %}
+                <div class="text-muted">No categories yet</div>
+                {% endfor %}
+                <a href="{% url 'category_create' %}" class="list-group-item list-group-item-action text-primary">
+                    <i class="bi bi-plus-circle me-2"></i> Add Category
+                </a>
+            </div>
+        </div>
+        
+        <div class="stats-card mb-4">
+            <h6>Productivity Stats</h6>
+            <div class="d-flex justify-content-between mt-3">
+                <div class="text-center">
+                    <h4>{{ total_tasks }}</h4>
+                    <small>Total Tasks</small>
+                </div>
+                <div class="text-center">
+                    <h4>{{ completed_tasks }}</h4>
+                    <small>Completed</small>
+                </div>
+                <div class="text-center">
+                    <h4>{{ overdue_tasks }}</h4>
+                    <small>Overdue</small>
+                </div>
+            </div>
+            {% if total_tasks > 0 %}
+            <div class="progress mt-3" style="height: 10px;">
+                <div class="progress-bar bg-success" role="progressbar" 
+                     style="width: {{ completion_rate }}%;" 
+                     aria-valuenow="{{ completion_rate }}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+            </div>
+            <small class="d-block text-center mt-2">{{ completion_rate }}% Complete</small>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                {% if filter == 'all' %}All Tasks
+                {% elif filter == 'active' %}Active Tasks
+                {% elif filter == 'completed' %}Completed Tasks
+                {% elif filter == 'overdue' %}Overdue Tasks
+                {% endif %}
+            </h2>
+            <a href="{% url 'task_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Add Task
+            </a>
+        </div>
+        
+        <div class="quick-add-form mb-4">
+            <form id="quick-add-form">
+                {% csrf_token %}
+                <div class="input-group">
+                    <input type="text" name="title" class="form-control" placeholder="Quick add a task..." required>
+                    <button type="submit" class="btn btn-success">Add</button>
+                </div>
+            </form>
+        </div>
+        
+        {% if tasks %}
+            <div class="list-group" id="tasks-container">
+                {% for task in tasks %}
+                    <div class="list-group-item priority-{{ task.priority }} mb-2 task-item {% if task.completed %}completed{% endif %}" id="task-{{ task.id }}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <input 
+                                    class="form-check-input task-checkbox" 
+                                    type="checkbox" 
+                                    {% if task.completed %}checked{% endif %}
+                                    data-task-id="{{ task.id }}"
+                                >
+                                <label class="form-check-label">
+                                    <strong>{{ task.title }}</strong>
+                                    {% if task.description %}
+                                        <br><small class="text-muted">{{ task.description }}</small>
+                                    {% endif %}
+                                    {% if task.is_overdue and not task.completed %}
+                                        <br><small class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Overdue</small>
+                                    {% endif %}
+                                </label>
+                            </div>
+                            <div class="text-end">
+                                {% if task.category %}
+                                    <span class="badge category-badge" style="background-color: {{ task.category.color }}; color: white;">
+                                        {{ task.category.name }}
+                                    </span>
+                                {% endif %}
+                                
+                                {% if task.due_date %}
+                                    <div class="{% if task.is_overdue and not task.completed %}text-danger{% else %}text-muted{% endif %}">
+                                        <small><i class="bi bi-clock me-1"></i> {{ task.due_date|date:"M d, Y H:i" }}</small>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="btn-group btn-group-sm mt-1">
+                                    <a href="{% url 'task_update' task.pk %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'task_delete' task.pk %}" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card text-center py-5">
+                <div class="card-body">
+                    {% if filter == 'all' %}
+                        <i class="bi bi-check2-all display-4 text-muted"></i>
+                        <h5 class="card-title mt-3">No tasks yet</h5>
+                        <p class="card-text">Get started by creating your first task!</p>
+                        <a href="{% url 'task_create' %}" class="btn btn-primary">Create Task</a>
+                    {% elif filter == 'active' %}
+                        <i class="bi bi-emoji-smile display-4 text-success"></i>
+                        <h5 class="card-title mt-3">No active tasks</h5>
+                        <p class="card-text">All tasks are completed! Great job!</p>
+                    {% elif filter == 'completed' %}
+                        <i class="bi bi-emoji-frown display-4 text-warning"></i>
+                        <h5 class="card-title mt-3">No completed tasks</h5>
+                        <p class="card-text">You haven't completed any tasks yet.</p>
+                    {% elif filter == 'overdue' %}
+                        <i class="bi bi-emoji-laughing display-4 text-success"></i>
+                        <h5 class="card-title mt-3">No overdue tasks</h5>
+                        <p class="card-text">You're on top of your deadlines! Well done!</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // AJAX for toggling task completion
+        const checkboxes = document.querySelectorAll('.task-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const taskId = this.dataset.taskId;
+                const url = `/task/${taskId}/toggle/`;
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const taskItem = this.closest('.task-item');
+                        if (data.completed) {
+                            taskItem.classList.add('completed');
+                        } else {
+                            taskItem.classList.remove('completed');
+                        }
+                        // Reload page to update stats
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 300);
+                    }
+                });
+            });
+        });
+        
+        // Quick add task form
+        const quickAddForm = document.getElementById('quick-add-form');
+        if (quickAddForm) {
+            quickAddForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const input = this.querySelector('input[name="title"]');
+                const title = input.value.trim();
+                
+                if (title) {
+                    const formData = new FormData();
+                    formData.append('title', title);
+                    
+                    fetch('/task/quick_add/', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': getCookie('csrftoken'),
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Reload page to show new task and update stats
+                            window.location.reload();
+                        }
+                    });
+                }
+            });
+        }
+    });
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

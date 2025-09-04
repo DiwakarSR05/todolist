@@ -1,0 +1,62 @@
+{% extends 'todo_app/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-primary text-white text-center py-4">
+                <h3><i class="bi bi-box-arrow-in-right me-2"></i>Login</h3>
+                <p class="mb-0">Welcome back to TaskMaster</p>
+            </div>
+            <div class="card-body p-5">
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="form-floating mb-3">
+                        <input type="text" name="username" class="form-control" id="username" placeholder="Username" required>
+                        <label for="username"><i class="bi bi-person me-2"></i>Username</label>
+                    </div>
+                    
+                    <div class="form-floating mb-4">
+                        <input type="password" name="password" class="form-control" id="password" placeholder="Password" required>
+                        <label for="password"><i class="bi bi-lock me-2"></i>Password</label>
+                    </div>
+                    
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                        </button>
+                    </div>
+                    
+                    <div class="text-center">
+                        <p class="mb-0">Don't have an account? <a href="{% url 'register' %}" class="text-decoration-none">Register here</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 1rem;
+    }
+    
+    .form-control:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+    }
+</style>
+{% endblock %}
